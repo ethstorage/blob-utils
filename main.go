@@ -8,6 +8,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"time"
 
 	gokzg4844 "github.com/crate-crypto/go-kzg-4844"
 	"github.com/ethereum/go-ethereum/common"
@@ -168,7 +169,17 @@ func TxApp(cliCtx *cli.Context) error {
 		return fmt.Errorf("%w: unable to send transaction", err)
 	}
 
-	log.Printf("Transaction submitted. nonce=%d hash=%v, blobs=%d", nonce, tx.Hash(), len(blobs))
+	for {
+		_, isPending, err := client.TransactionByHash(context.Background(), tx.Hash())
+		if err != nil || isPending {
+			time.Sleep(1 * time.Second)
+		} else {
+			break
+		}
+	}
+
+	// log.Printf("Transaction submitted. nonce=%d hash=%v, blobs=%d", nonce, tx.Hash(), len(blobs))
+	fmt.Printf("Transaction submitted. nonce=%d hash=%v, blobs=%d", nonce, tx.Hash(), len(blobs))
 
 	return nil
 }
